@@ -1,0 +1,10 @@
+[TELEGRAM]
+; https://t.me/BotFather
+BOT_TOKEN = 
+; https://api.telegram.org/bot<BOT_TOKEN>/getUpdates
+CHANNEL_ID = 
+
+[CHAIN]
+RPC = https://bscrpc.com
+WETH = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c
+FACTORY_ADR = 0xca143ce32fe78f1f7019d7d551a6402fc5350c73
