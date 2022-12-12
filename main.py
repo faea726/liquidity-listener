@@ -33,7 +33,6 @@ class LiqudityListener:
                 self._core()
             except Exception as err:
                 print("[-]", err)
-            break
 
     def _core(self):
         try:
@@ -41,14 +40,14 @@ class LiqudityListener:
         except Exception as err:
             raise (err)
 
-        if last_pair >= self.all_pairs:
+        if last_pair > self.all_pairs:
             try:
                 self._process(last_pair)
             except Exception as err:
                 raise (err)
 
     def _process(self, last_pair: int):
-        for index in range(self.all_pairs - 1, last_pair):
+        for index in range(self.all_pairs, last_pair):
             try:
                 pair_adr = self.factory_contract.functions.allPairs(index).call()
                 pair = Pair(
@@ -65,12 +64,46 @@ class LiqudityListener:
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: Pair):
+        qual_list = [self.evm.WETH, self.evm.BUSD, self.evm.USDT]
+        if pair.token0 not in qual_list and pair.token1 not in qual_list:
+            print("[?]", pair.address)
+            return
+
+        if (
+            pair.token0 == self.evm.WETH
+            and pair.token0.liquid < self.config.telegram.min_liq_e
+        ) or (
+            pair.token1 == self.evm.WETH
+            and pair.token1.liquid < self.config.telegram.min_liq_e
+        ):
+            print("[<]", pair.address)
+            return
+
+        if (
+            (
+                pair.token0 == self.evm.BUSD
+                and pair.token0.liquid < self.config.telegram.min_liq_u
+            )
+            or (
+                pair.token1 == self.evm.BUSD
+                and pair.token1.liquid < self.config.telegram.min_liq_u
+            )
+            or (
+                pair.token0 == self.evm.USDT
+                and pair.token1.liquid < self.config.telegram.min_liq_u
+            )
+            or (
+                pair.token1 == self.evm.USDT
+                and pair.token1.liquid < self.config.telegram.min_liq_u
+            )
+        ):
+            print("[<]", pair.address)
+            return
+
         api_url = (
             f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
         )
         message = pair.__str__()
-        print(message)
-        return
 
         try:
             rsp = requests.post(

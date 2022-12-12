@@ -1,5 +1,3 @@
-import time
-
 from web3 import Web3
 
 
@@ -44,7 +42,6 @@ class Token:
 
 class Pair:
     def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
-        time.sleep(3)  # Wait for stabilizing
         self.address = address
         self.contract = evm.create_contract(address, pair_abi)
 
