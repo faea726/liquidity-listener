@@ -5,6 +5,49 @@ from utils.evm import Evm
 
 
 class LiqudityListener:
+    class _Pair:
+        def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
+            self.address = address
+            contract = evm.create_contract(address, pair_abi)
+
+            try:
+                self.token0 = evm.create_contract(
+                    str(contract.functions.token0().call()), erc20_abi
+                )
+                self.token1 = evm.create_contract(
+                    str(contract.functions.token1().call()), erc20_abi
+                )
+            except Exception as err:
+                raise (err)
+
+        def __str__(self):
+            token0_symbol = self.token0.functions.symbol().call
+            token1_symbol = self.token1.functions.symbol().call
+
+            token0_decimals = self.token0.functions.decimals().call()
+            token1_decimals = self.token1.functions.decimals().call()
+
+            token0_wei_balance = self.token0.functions.balanceOf(self.address).call()
+            token1_wei_balance = self.token1.functions.balanceOf(self.address).call()
+
+            if token0_wei_balance == 0 or token1_wei_balance == 0:
+                return ""
+
+            token0_balance = token0_wei_balance / (10**token0_decimals)
+            token1_balance = token1_wei_balance / (10**token1_decimals)
+
+            return (
+                f"Pair: `{self.address}`\n\n"
+                + f"Token0: `{self.token0.address}`\n"
+                + f"Symbol: {token0_symbol}"
+                + f"Decimals: {token0_decimals}"
+                + f"Liquid: `{token0_balance}`\n\n"
+                + f"Token1: `{self.token1.address}`\n"
+                + f"Symbol: {token1_symbol}\n"
+                + f"Decimals: {token1_decimals}\n"
+                + f"Liquid: `{token1_balance}`"
+            )
+
     def __init__(self, config_file: str):
         self.config = Config(config_file)
         self.evm = Evm(
@@ -55,18 +98,19 @@ class LiqudityListener:
                 self.config.chain.PAIR_ABI,
                 self.config.chain.ERC20_ABI,
             )
-            msg = pair.__str__()
-            if msg != "":
-                self._send_to_telegram(msg)
-            else:
-                print("[-]", pair.address)
+            self._send_to_telegram(pair)
 
         self.all_pairs = last_pair
 
-    def _send_to_telegram(self, message=""):
+    def _send_to_telegram(self, pair: _Pair):
         api_url = (
             f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
         )
+
+        message = pair.__str__()
+        if message == "":
+            print("[-]", pair.address, pair.token0, pair.token1)
+            return
 
         try:
             rsp = requests.post(
@@ -78,54 +122,11 @@ class LiqudityListener:
                 },
             )
             if rsp.status_code != 200:
-                print("[-]", rsp.json()["description"])
+                print("[-]", pair.address, "\n[?]", rsp.json()["description"])
             else:
-                print("[+] Sent")
+                print("[+]", pair.address)
         except Exception as err:
             print("[-]", err)
-
-    class _Pair:
-        def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
-            self.address = address
-            contract = evm.create_contract(address, pair_abi)
-
-            try:
-                self.token0 = evm.create_contract(
-                    str(contract.functions.token0().call()), erc20_abi
-                )
-                self.token1 = evm.create_contract(
-                    str(contract.functions.token1().call()), erc20_abi
-                )
-            except Exception as err:
-                raise (err)
-
-        def __str__(self):
-            token0_symbol = self.token0.functions.symbol().call
-            token1_symbol = self.token1.functions.symbol().call
-
-            token0_decimals = self.token0.functions.decimals().call()
-            token1_decimals = self.token1.functions.decimals().call()
-
-            token0_wei_balance = self.token0.functions.balanceOf(self.address).call()
-            token1_wei_balance = self.token1.functions.balanceOf(self.address).call()
-
-            token0_balance = token0_wei_balance / (10**token0_decimals)
-            token1_balance = token1_wei_balance / (10**token1_decimals)
-
-            if token0_balance == 0 and token1_balance == 0:
-                return ""
-
-            return (
-                f"Pair: `{self.address}`\n\n"
-                + f"Token0: `{self.token0.address}`\n"
-                + f"Symbol: {token0_symbol}"
-                + f"Decimals: {token0_decimals}"
-                + f"Liquid: `{token0_balance}`\n\n"
-                + f"Token1: `{self.token1.address}`\n"
-                + f"Symbol: {token1_symbol}\n"
-                + f"Decimals: {token1_decimals}\n"
-                + f"Liquid: `{token1_balance}`"
-            )
 
 
 if __name__ == "__main__":
