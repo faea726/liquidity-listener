@@ -3,54 +3,10 @@ import time
 import requests
 
 from utils.config import Config
-from utils.evm import Evm
+from utils.evm import Evm, Pair
 
 
 class LiqudityListener:
-    class _Pair:
-        class _Token:
-            def __init__(
-                self, evm: Evm, token_address: str, erc20_abi, pair_address: str
-            ):
-                self.address = token_address
-                self.contract = evm.create_contract(token_address, erc20_abi)
-                try:
-                    self.symbol = self.contract.functions.symbol().call()
-                    self.wei_liquid = self.contract.functions.balanceOf(
-                        pair_address
-                    ).call()
-                    self.decimals = self.contract.functions.decimals().call()
-                except Exception as err:
-                    raise (err)
-
-                self.liquid = self.wei_liquid / (10**self.decimals)
-
-        def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
-            time.sleep(3)  # Wait for stabilizing
-            self.address = address
-            self.contract = evm.create_contract(address, pair_abi)
-
-            try:
-                token0_adr = self.contract.functions.token0().call()
-                token1_adr = self.contract.functions.token1().call()
-                self.token0 = self._Token(evm, token0_adr, erc20_abi, self.address)
-                self.token1 = self._Token(evm, token1_adr, erc20_abi, self.address)
-            except Exception as err:
-                raise (err)
-
-        def __str__(self):
-            return (
-                f"Pair: `{self.address}`\n\n"
-                + f"Token0: `{self.token0.address}`\n"
-                + f"Symbol: {self.token0.symbol}\n"
-                + f"Decimals: {self.token0.decimals}\n"
-                + f"Liquid: `{self.token0.liquid}`\n\n"
-                + f"Token1: `{self.token1.address}`\n"
-                + f"Symbol: {self.token1.symbol}\n"
-                + f"Decimals: {self.token1.decimals}\n"
-                + f"Liquid: `{self.token1.liquid}`"
-            )
-
     def __init__(self, config_file: str):
         self.config = Config(config_file)
         self.evm = Evm(
@@ -95,7 +51,7 @@ class LiqudityListener:
         for index in range(self.all_pairs - 1, last_pair):
             try:
                 pair_adr = self.factory_contract.functions.allPairs(index).call()
-                pair = self._Pair(
+                pair = Pair(
                     self.evm,
                     pair_adr,
                     self.config.chain.PAIR_ABI,
@@ -108,13 +64,13 @@ class LiqudityListener:
             self.all_pairs = last_pair
             print("[*] Current:", self.all_pairs)
 
-    def _send_to_telegram(self, pair: _Pair):
+    def _send_to_telegram(self, pair: Pair):
         api_url = (
             f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
         )
         message = pair.__str__()
-        # print(message)
-        # return
+        print(message)
+        return
 
         try:
             rsp = requests.post(
