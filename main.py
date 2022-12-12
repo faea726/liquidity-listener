@@ -8,48 +8,47 @@ from utils.evm import Evm
 
 class LiqudityListener:
     class _Pair:
+        class _Token:
+            def __init__(
+                self, evm: Evm, token_address: str, erc20_abi, pair_address: str
+            ):
+                self.address = token_address
+                self.contract = evm.create_contract(token_address, erc20_abi)
+                try:
+                    self.symbol = self.contract.functions.symbol().call()
+                    self.wei_liquid = self.contract.functions.balanceOf(
+                        pair_address
+                    ).call()
+                    self.decimals = self.contract.functions.decimals().call()
+                except Exception as err:
+                    raise (err)
+
+                self.liquid = self.wei_liquid / (10**self.decimals)
+
         def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
             time.sleep(3)  # Wait for stabilizing
             self.address = address
-            contract = evm.create_contract(address, pair_abi)
+            self.contract = evm.create_contract(address, pair_abi)
 
             try:
-                self.token0 = evm.create_contract(
-                    str(contract.functions.token0().call()), erc20_abi
-                )
-                self.token1 = evm.create_contract(
-                    str(contract.functions.token1().call()), erc20_abi
-                )
-
-                self.token0_symbol = self.token0.functions.symbol().call()
-                self.token1_symbol = self.token1.functions.symbol().call()
-
-                self.token0_decimals = self.token0.functions.decimals().call()
-                self.token1_decimals = self.token1.functions.decimals().call()
-
-                self.token0_wei_balance = self.token0.functions.balanceOf(
-                    self.address
-                ).call()
-                self.token1_wei_balance = self.token1.functions.balanceOf(
-                    self.address
-                ).call()
+                token0_adr = self.contract.functions.token0().call()
+                token1_adr = self.contract.functions.token1().call()
+                self.token0 = self._Token(evm, token0_adr, erc20_abi, self.address)
+                self.token1 = self._Token(evm, token1_adr, erc20_abi, self.address)
             except Exception as err:
                 raise (err)
-
-            self.token0_balance = self.token0_wei_balance / (10**self.token0_decimals)
-            self.token1_balance = self.token1_wei_balance / (10**self.token1_decimals)
 
         def __str__(self):
             return (
                 f"Pair: `{self.address}`\n\n"
                 + f"Token0: `{self.token0.address}`\n"
-                + f"Symbol: {self.token0_symbol}\n"
-                + f"Decimals: {self.token0_decimals}\n"
-                + f"Liquid: `{self.token0_balance}`\n\n"
+                + f"Symbol: {self.token0.symbol}\n"
+                + f"Decimals: {self.token0.decimals}\n"
+                + f"Liquid: `{self.token0.liquid}`\n\n"
                 + f"Token1: `{self.token1.address}`\n"
-                + f"Symbol: {self.token1_symbol}\n"
-                + f"Decimals: {self.token1_decimals}\n"
-                + f"Liquid: `{self.token1_balance}`"
+                + f"Symbol: {self.token1.symbol}\n"
+                + f"Decimals: {self.token1.decimals}\n"
+                + f"Liquid: `{self.token1.liquid}`"
             )
 
     def __init__(self, config_file: str):
@@ -61,11 +60,6 @@ class LiqudityListener:
             self.config.chain.USDT_ADDRESS,
             self.config.chain.ERC20_ABI,
         )
-        self.q_adres = [
-            self.evm.WETH.address,
-            self.evm.BUSD.address,
-            self.evm.USDT.address,
-        ]
 
         self.factory_contract = self.evm.create_contract(
             self.config.chain.FACTORY_ADDRESS, self.config.chain.FACTORY_ABI
@@ -83,6 +77,7 @@ class LiqudityListener:
                 self._core()
             except Exception as err:
                 print("[-]", err)
+            break
 
     def _core(self):
         try:
@@ -90,38 +85,36 @@ class LiqudityListener:
         except Exception as err:
             raise (err)
 
-        if last_pair > self.all_pairs:
+        if last_pair >= self.all_pairs:
             try:
                 self._process(last_pair)
             except Exception as err:
                 raise (err)
 
     def _process(self, last_pair: int):
-        for index in range(self.all_pairs, last_pair):
-            pair_adr = self.factory_contract.functions.allPairs(index).call()
-            pair = self._Pair(
-                self.evm,
-                pair_adr,
-                self.config.chain.PAIR_ABI,
-                self.config.chain.ERC20_ABI,
-            )
+        for index in range(self.all_pairs - 1, last_pair):
+            try:
+                pair_adr = self.factory_contract.functions.allPairs(index).call()
+                pair = self._Pair(
+                    self.evm,
+                    pair_adr,
+                    self.config.chain.PAIR_ABI,
+                    self.config.chain.ERC20_ABI,
+                )
+            except Exception as err:
+                raise (err)
 
             self._send_to_telegram(pair)
             self.all_pairs = last_pair
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: _Pair):
-        if (
-            pair.token0.address not in self.q_adres
-            and pair.token1.address not in self.q_adres
-        ):
-            print(f"[?] {pair.address}")
-            return
-
         api_url = (
             f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
         )
         message = pair.__str__()
+        # print(message)
+        # return
 
         try:
             rsp = requests.post(
