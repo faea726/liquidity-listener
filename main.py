@@ -65,7 +65,7 @@ class LiqudityListener:
 
     def _send_to_telegram(self, pair: Pair):
         qual_list = [self.evm.WETH, self.evm.BUSD, self.evm.USDT]
-        if pair.token0 not in qual_list and pair.token1 not in qual_list:
+        if pair.token0 not in qual_list or pair.token1 not in qual_list:
             print("[?]", pair.address)
             return
 
