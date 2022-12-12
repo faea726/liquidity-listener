@@ -31,8 +31,8 @@ class LiqudityListener:
         while True:
             try:
                 self._core()
-            except Exception as err:
-                print("[-]", err)
+            except Exception:
+                pass
 
     def _core(self):
         try:
