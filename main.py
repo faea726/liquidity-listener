@@ -61,6 +61,11 @@ class LiqudityListener:
             self.config.chain.USDT_ADDRESS,
             self.config.chain.ERC20_ABI,
         )
+        self.q_adres = [
+            self.evm.WETH.address,
+            self.evm.BUSD.address,
+            self.evm.USDT.address,
+        ]
 
         self.factory_contract = self.evm.create_contract(
             self.config.chain.FACTORY_ADDRESS, self.config.chain.FACTORY_ABI
@@ -106,28 +111,16 @@ class LiqudityListener:
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: _Pair):
-        api_url = (
-            f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
-        )
-
         if (
-            pair.token0.address != self.evm.WETH.address
-            or pair.token0.address != self.evm.BUSD.address
-            or pair.token0.address != self.evm.USDT.address
-            or pair.token1.address != self.evm.WETH.address
-            or pair.token1.address != self.evm.BUSD.address
-            or pair.token1.address != self.evm.USDT.address
+            pair.token0.address not in self.q_adres
+            and pair.token1.address not in self.q_adres
         ):
             print(f"[?] {pair.address}")
             return
 
-        if (
-            pair.token0_balance <= self.config.telegram.min_liq
-            or pair.token1_balance <= self.config.telegram.min_liq
-        ):
-            print(f"[<] {pair.address}")
-            return
-
+        api_url = (
+            f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
+        )
         message = pair.__str__()
 
         try:

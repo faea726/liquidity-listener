@@ -3,7 +3,8 @@
 BOT_TOKEN = 
 ; https://api.telegram.org/bot<BOT_TOKEN>/getUpdates
 CHANNEL_ID = 
-MIN_LIQUID = 10
+MIN_LIQUID_E = 10
+MIN_LIQUID_U = 1000
 
 [CHAIN]
 RPC = https://bscrpc.com

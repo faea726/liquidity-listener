@@ -22,9 +22,11 @@ class Config:
             cfg.read(conf_file)
 
             telegram = cfg["TELEGRAM"]
+
             bot_token = telegram["BOT_TOKEN"]
             channel_id = telegram["CHANNEL_ID"]
-            min_liq = telegram["MIN_LIQUID"]
+            min_liq_e = int(telegram["MIN_LIQUID_E"])
+            min_liq_u = int(telegram["MIN_LIQUID_U"])
 
             chain = cfg["CHAIN"]
 
@@ -39,7 +41,7 @@ class Config:
             pair_abi_path = chain["PAIR_ABI_PATH"]
         except Exception as err:
             exit(err)
-        return self._Telegram(bot_token, channel_id, min_liq), self._Chain(
+        return self._Telegram(bot_token, channel_id, min_liq_e, min_liq_u), self._Chain(
             RPC_ENDPOINT,
             FACTORY_ADDRESS,
             WETH_ADDRESS,
@@ -51,10 +53,11 @@ class Config:
         )
 
     class _Telegram:
-        def __init__(self, bot_token, chat_id, min_liq):
+        def __init__(self, bot_token, chat_id, min_liq_e, min_liq_u):
             self.bot_token = bot_token
             self.chat_id = chat_id
-            self.min_liq = min_liq
+            self.min_liq_e = min_liq_e
+            self.min_liq_u = min_liq_u
 
     class _Chain:
         def __init__(
