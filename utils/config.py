@@ -26,16 +26,27 @@ class Config:
             channel_id = telegram["CHANNEL_ID"]
 
             chain = cfg["CHAIN"]
-            rpc = chain["RPC"]
-            weth = chain["WETH"]
-            f_adr = chain["FACTORY_ADR"]
+
+            RPC_ENDPOINT = chain["RPC"]
+            FACTORY_ADDRESS = chain["FACTORY_ADDRESS"]
+            WETH_ADDRESS = chain["WETH_ADDRESS"]
+            BUSD_ADDRESS = chain["BUSD_ADDRESS"]
+            USDT_ADDRESS = chain["USDT_ADDRESS"]
+
             factory_abi_path = chain["FACTORY_ABI_PATH"]
             erc20_abi_path = chain["ERC20_ABI_PATH"]
             pair_abi_path = chain["PAIR_ABI_PATH"]
         except Exception as err:
             exit(err)
         return self._Telegram(bot_token, channel_id), self._Chain(
-            rpc, weth, f_adr, erc20_abi_path, factory_abi_path, pair_abi_path
+            RPC_ENDPOINT,
+            FACTORY_ADDRESS,
+            WETH_ADDRESS,
+            BUSD_ADDRESS,
+            USDT_ADDRESS,
+            erc20_abi_path,
+            factory_abi_path,
+            pair_abi_path,
         )
 
     class _Telegram:
@@ -46,19 +57,24 @@ class Config:
     class _Chain:
         def __init__(
             self,
-            rpc,
-            weth,
+            rpc_endpoint,
             factory_address,
+            weth_address,
+            busd_address,
+            usdt_address,
             erc20_abi_path,
             factory_abi_path,
             pair_abi_path,
         ):
-            self.rpc = rpc
-            self.weth = (weth,)
-            self.factory_address = factory_address
+            self.RPC_ENDPOINT = rpc_endpoint
+            self.FACTORY_ADDRESS = factory_address
+
+            self.WETH_ADDRESS = weth_address
+            self.BUSD_ADDRESS = busd_address
+            self.USDT_ADDRESS = usdt_address
             try:
-                self.factory_abi = json.load(open(factory_abi_path))
-                self.erc20_abi = json.load(open(erc20_abi_path))
-                self.pair_abi = json.load(open(pair_abi_path))
+                self.FACTORY_ABI = json.load(open(factory_abi_path))
+                self.ERC20_ABI = json.load(open(erc20_abi_path))
+                self.PAIR_ABI = json.load(open(pair_abi_path))
             except Exception as err:
                 exit(err)
