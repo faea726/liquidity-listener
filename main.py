@@ -27,16 +27,22 @@ class LiqudityListener:
 
     def run(self):
         while True:
-            self._core()
+            try:
+                self._core()
+            except Exception as err:
+                print("[-]", err)
 
     def _core(self):
         try:
             last_pair = self.factory_contract.functions.allPairsLength().call()
         except Exception as err:
-            exit(err)
+            raise (err)
 
         if last_pair > self.all_pairs:
-            self._process(last_pair)
+            try:
+                self._process(last_pair)
+            except Exception as err:
+                raise (err)
             self.all_pairs = last_pair
             print("[*] Current:", self.all_pairs)
 
@@ -81,14 +87,17 @@ class LiqudityListener:
     class _Pair:
         def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
             self.address = address
-            self.contract = evm.create_contract(address, pair_abi)
+            contract = evm.create_contract(address, pair_abi)
 
-            self.token0 = evm.create_contract(
-                self.contract.functions.token0().call(), erc20_abi
-            )
-            self.token1 = evm.create_contract(
-                self.contract.functions.token1().call(), erc20_abi
-            )
+            try:
+                self.token0 = evm.create_contract(
+                    str(contract.functions.token0().call()), erc20_abi
+                )
+                self.token1 = evm.create_contract(
+                    str(contract.functions.token1().call()), erc20_abi
+                )
+            except Exception as err:
+                raise (err)
 
         def __str__(self):
             token0_symbol = self.token0.functions.symbol().call
@@ -113,8 +122,8 @@ class LiqudityListener:
                 + f"Decimals: {token0_decimals}"
                 + f"Liquid: `{token0_balance}`\n\n"
                 + f"Token1: `{self.token1.address}`\n"
-                + f"Symbol: {token1_symbol}"
-                + f"Decimals: {token1_decimals}"
+                + f"Symbol: {token1_symbol}\n"
+                + f"Decimals: {token1_decimals}\n"
                 + f"Liquid: `{token1_balance}`"
             )
 
