@@ -21,8 +21,8 @@ class LiqudityListener:
                 raise (err)
 
         def __str__(self):
-            token0_symbol = self.token0.functions.symbol().call
-            token1_symbol = self.token1.functions.symbol().call
+            token0_symbol = self.token0.functions.symbol().call()
+            token1_symbol = self.token1.functions.symbol().call()
 
             token0_decimals = self.token0.functions.decimals().call()
             token1_decimals = self.token1.functions.decimals().call()
@@ -39,8 +39,8 @@ class LiqudityListener:
             return (
                 f"Pair: `{self.address}`\n\n"
                 + f"Token0: `{self.token0.address}`\n"
-                + f"Symbol: {token0_symbol}"
-                + f"Decimals: {token0_decimals}"
+                + f"Symbol: {token0_symbol}\n"
+                + f"Decimals: {token0_decimals}\n"
                 + f"Liquid: `{token0_balance}`\n\n"
                 + f"Token1: `{self.token1.address}`\n"
                 + f"Symbol: {token1_symbol}\n"
