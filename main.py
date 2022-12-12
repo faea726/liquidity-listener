@@ -1,3 +1,5 @@
+import time
+
 import requests
 
 from utils.config import Config
@@ -86,11 +88,10 @@ class LiqudityListener:
                 self._process(last_pair)
             except Exception as err:
                 raise (err)
-            self.all_pairs = last_pair
-            print("[*] Current:", self.all_pairs)
 
     def _process(self, last_pair: int):
         for index in range(self.all_pairs, last_pair):
+            time.sleep(3)  # Wait for stabilizing
             pair_adr = self.factory_contract.functions.allPairs(index).call()
             pair = self._Pair(
                 self.evm,
@@ -98,9 +99,10 @@ class LiqudityListener:
                 self.config.chain.PAIR_ABI,
                 self.config.chain.ERC20_ABI,
             )
-            self._send_to_telegram(pair)
 
-        self.all_pairs = last_pair
+            self._send_to_telegram(pair)
+            self.all_pairs = last_pair
+            print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: _Pair):
         api_url = (
@@ -109,7 +111,7 @@ class LiqudityListener:
 
         message = pair.__str__()
         if message == "":
-            print("[-]", pair.address, pair.token0, pair.token1)
+            print(f"[-] {pair.address}")
             return
 
         try:
@@ -122,7 +124,10 @@ class LiqudityListener:
                 },
             )
             if rsp.status_code != 200:
-                print("[-]", pair.address, "\n[?]", rsp.json()["description"])
+                print(
+                    f"[-]{pair.address}\n",
+                    f"  [?] {rsp.json()['description']}",
+                )
             else:
                 print("[+]", pair.address)
         except Exception as err:
