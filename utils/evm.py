@@ -10,9 +10,11 @@ class Evm:
         if not self.web3.isConnected():
             exit(1)
 
-    def create_contract(self, adr, abi):
+    def create_contract(self, address: str, abi):
         """Crate interactable contract"""
         try:
-            return self.web3.eth.contract(address=adr, abi=abi)
+            return self.web3.eth.contract(
+                address=Web3.toChecksumAddress(address), abi=abi
+            )
         except Exception as err:
             exit(err)

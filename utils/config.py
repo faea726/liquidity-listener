@@ -1,3 +1,4 @@
+import json
 from configparser import ConfigParser
 
 
@@ -28,9 +29,14 @@ class Config:
             rpc = chain["RPC"]
             weth = chain["WETH"]
             f_adr = chain["FACTORY_ADR"]
+            factory_abi_path = chain["FACTORY_ABI_PATH"]
+            erc20_abi_path = chain["ERC20_ABI_PATH"]
+            pair_abi_path = chain["PAIR_ABI_PATH"]
         except Exception as err:
             exit(err)
-        return self._Telegram(bot_token, channel_id), self._Chain(rpc, weth, f_adr)
+        return self._Telegram(bot_token, channel_id), self._Chain(
+            rpc, weth, f_adr, erc20_abi_path, factory_abi_path, pair_abi_path
+        )
 
     class _Telegram:
         def __init__(self, bot_token, chat_id):
@@ -38,7 +44,21 @@ class Config:
             self.chat_id = chat_id
 
     class _Chain:
-        def __init__(self, rpc, weth, factory_address):
+        def __init__(
+            self,
+            rpc,
+            weth,
+            factory_address,
+            erc20_abi_path,
+            factory_abi_path,
+            pair_abi_path,
+        ):
             self.rpc = rpc
             self.weth = (weth,)
             self.factory_address = factory_address
+            try:
+                self.factory_abi = json.load(open(factory_abi_path))
+                self.erc20_abi = json.load(open(erc20_abi_path))
+                self.pair_abi = json.load(open(pair_abi_path))
+            except Exception as err:
+                exit(err)
