@@ -64,23 +64,28 @@ class LiqudityListener:
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: Pair):
-        qual_list = [self.evm.WETH, self.evm.BUSD, self.evm.USDT]
-        if pair.token0 not in qual_list or pair.token1 not in qual_list:
+        qual_list = [
+            self.evm.WETH.address,
+            self.evm.BUSD.address,
+            self.evm.USDT.address,
+        ]
+        if (
+            pair.token0.address not in qual_list
+            and pair.token1.address not in qual_list
+        ):
             print("[?]", pair.address)
             return
 
         if (
-            pair.token0 == self.evm.WETH
-            and pair.token0.liquid < self.config.telegram.min_liq_e
-        ) or (
-            pair.token1 == self.evm.WETH
-            and pair.token1.liquid < self.config.telegram.min_liq_e
-        ):
-            print("[<]", pair.address)
-            return
-
-        if (
             (
+                pair.token0 == self.evm.WETH
+                and pair.token0.liquid < self.config.telegram.min_liq_e
+            )
+            or (
+                pair.token1 == self.evm.WETH
+                and pair.token1.liquid < self.config.telegram.min_liq_e
+            )
+            or (
                 pair.token0 == self.evm.BUSD
                 and pair.token0.liquid < self.config.telegram.min_liq_u
             )
@@ -97,6 +102,10 @@ class LiqudityListener:
                 and pair.token1.liquid < self.config.telegram.min_liq_u
             )
         ):
+            print("[<]", pair.address)
+            return
+
+        if ():
             print("[<]", pair.address)
             return
 
