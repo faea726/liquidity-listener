@@ -64,8 +64,8 @@ class LiqudityListener:
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: Pair):
-        if pair.serialize() == "":
-            print("[?]", pair.address)
+        if pair.is_honeypot:
+            print("[!]", pair.address)
             return
 
         if (
