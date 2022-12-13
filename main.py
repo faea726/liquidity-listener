@@ -64,15 +64,7 @@ class LiqudityListener:
             print("[*] Current:", self.all_pairs)
 
     def _send_to_telegram(self, pair: Pair):
-        qual_list = [
-            self.evm.WETH.address,
-            self.evm.BUSD.address,
-            self.evm.USDT.address,
-        ]
-        if (
-            pair.token0.address not in qual_list
-            and pair.token1.address not in qual_list
-        ):
+        if pair.serialize() == "":
             print("[?]", pair.address)
             return
 
@@ -105,14 +97,10 @@ class LiqudityListener:
             print("[<]", pair.address)
             return
 
-        if ():
-            print("[<]", pair.address)
-            return
-
         api_url = (
             f"https://api.telegram.org/bot{self.config.telegram.bot_token}/sendMessage"
         )
-        message = pair.__str__()
+        message = pair.serialize()
 
         try:
             rsp = requests.post(
@@ -122,6 +110,7 @@ class LiqudityListener:
                     "text": message,
                     "parse_mode": "MarkdownV2",
                 },
+                timeout=3,
             )
             if rsp.status_code != 200:
                 print(

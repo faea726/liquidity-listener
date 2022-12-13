@@ -44,6 +44,7 @@ class Pair:
     def __init__(self, evm: Evm, address: str, pair_abi, erc20_abi):
         self.address = address
         self.contract = evm.create_contract(address, pair_abi)
+        self.valid_list = [evm.WETH.address, evm.BUSD.address, evm.USDT.address]
 
         try:
             token0_adr = self.contract.functions.token0().call()
@@ -53,7 +54,16 @@ class Pair:
         except Exception as err:
             raise (err)
 
-    def __str__(self):
+    def serialize(self):
+        """Serialize data to telegram message"""
+        poocoin_url = "https://poocoin.app/tokens/"
+        if self.token0.address in self.valid_list:
+            poocoin_url += str(self.token1.address)
+        elif self.token1.address in self.valid_list:
+            poocoin_url += str(self.token0.address)
+        else:
+            return ""
+
         return (
             f"Pair: `{self.address}`\n\n"
             + f"Token0: `{self.token0.address}`\n"
@@ -63,5 +73,6 @@ class Pair:
             + f"Token1: `{self.token1.address}`\n"
             + f"Symbol: {self.token1.symbol}\n"
             + f"Decimals: {self.token1.decimals}\n"
-            + f"Liquid: `{self.token1.liquid}`"
+            + f"Liquid: `{self.token1.liquid}`\n\n"
+            + f"[POOCOIN LINK]({poocoin_url})"
         )
