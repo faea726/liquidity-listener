@@ -105,7 +105,7 @@ class Pair:
                 self.sellable,
             ] = evm.CHECKER.functions.getTokenInformations(token_address).call()
         except Exception as err:
-            raise (err)
+            return True
 
         if not self.buyable and not self.sellable:
             return True
@@ -121,15 +121,15 @@ class Pair:
             return ""
 
         return (
-            f"Pair: `{self.address}`\n\n"
-            + f"Token0: `{self.token0.address}`\n"
-            + f"Symbol: {self.token0.symbol}\n"
-            + f"Decimals: {self.token0.decimals}\n"
-            + f"Liquid: `{self.token0.liquid}`\n\n"
-            + f"Token1: `{self.token1.address}`\n"
-            + f"Symbol: {self.token1.symbol}\n"
-            + f"Decimals: {self.token1.decimals}\n"
-            + f"Liquid: `{self.token1.liquid}`\n\n"
-            + f"[POOCOIN LINK]({self.poocoin_url})\n"
-            + f"Buy Tax: {self.buy_tax}, Sell Tax: {self.sell_tax}"
+            f"Pair: <code>{self.address}</code>\n\n"
+            + f"Token0: <code>{self.token0.address}</code>\n"
+            + f"Symbol: <b>{self.token0.symbol}</b>\n"
+            + f"Decimals: <code>{self.token0.decimals}</code>\n"
+            + f"Liquid: <code>{self.token0.liquid}</code>\n\n"
+            + f"Token1: <code>{self.token1.address}</code>\n"
+            + f"Symbol: <b>{self.token1.symbol}</b>\n"
+            + f"Decimals: <code>{self.token1.decimals}</code>\n"
+            + f"Liquid: <code>{self.token1.liquid}</code>\n\n"
+            + f"<a href='{self.poocoin_url}'><b>Poocoin link</b></a>\n"
+            + f"Buy Tax: <code>{self.buy_tax}</code>, Sell Tax: <code>{self.sell_tax}</code>"
         )

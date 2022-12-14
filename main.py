@@ -65,7 +65,7 @@ class LiqudityListener:
 
     def _send_to_telegram(self, pair: Pair):
         if pair.is_honeypot:
-            print("[!]", pair.address)
+            print(f"[!] {pair.address} = {pair.token0.symbol} + {pair.token1.symbol}")
             return
 
         if (
@@ -108,7 +108,7 @@ class LiqudityListener:
                 json={
                     "chat_id": self.config.telegram.chat_id,
                     "text": message,
-                    "parse_mode": "MarkdownV2",
+                    "parse_mode": "HTML",
                     "disable_web_page_preview": True,
                 },
                 timeout=3,
