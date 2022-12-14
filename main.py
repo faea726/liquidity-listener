@@ -31,8 +31,8 @@ class LiqudityListener:
         while True:
             try:
                 self._core()
-            except Exception as err:
-                print(err)
+            except Exception:
+                pass
 
     def _core(self):
         try:
@@ -65,7 +65,9 @@ class LiqudityListener:
 
     def _send_to_telegram(self, pair: Pair):
         if pair.is_honeypot:
-            print(f"[!] {pair.address} = {pair.token0.symbol} + {pair.token1.symbol}")
+            print(
+                f"[!] {pair.token0.symbol} + {pair.token1.symbol} = https://bscscan.com/address/{pair.address}"
+            )
             return
 
         if (
@@ -94,7 +96,9 @@ class LiqudityListener:
                 and pair.token1.liquid < self.config.telegram.min_liq_u
             )
         ):
-            print("[<]", pair.address)
+            print(
+                f"[<] {pair.token0.symbol} + {pair.token1.symbol} = https://bscscan.com/address/{pair.address}"
+            )
             return
 
         api_url = (
@@ -119,7 +123,7 @@ class LiqudityListener:
                     f"  [?] {rsp.json()['description']}",
                 )
             else:
-                print("[+]", pair.address)
+                print("[+]", pair.poocoin_url)
         except Exception as err:
             print("[-]", err)
 

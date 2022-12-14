@@ -122,11 +122,11 @@ class Pair:
 
         return (
             f"Pair: <code>{self.address}</code>\n\n"
-            + f"Token0: <code>{self.token0.address}</code>\n"
+            + f"Token0: <a href='https://bscscan.com/address/{self.token0.address}'>{self.token0.address}</a>\n"
             + f"Symbol: <b>{self.token0.symbol}</b>\n"
             + f"Decimals: <code>{self.token0.decimals}</code>\n"
             + f"Liquid: <code>{self.token0.liquid}</code>\n\n"
-            + f"Token1: <code>{self.token1.address}</code>\n"
+            + f"Token1: <a href='https://bscscan.com/address/{self.token1.address}'>{self.token1.address}</a>\n"
             + f"Symbol: <b>{self.token1.symbol}</b>\n"
             + f"Decimals: <code>{self.token1.decimals}</code>\n"
             + f"Liquid: <code>{self.token1.liquid}</code>\n\n"
