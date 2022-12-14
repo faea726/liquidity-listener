@@ -82,19 +82,11 @@ class LiqudityListener:
                 and pair.token1.liquid < self.config.telegram.min_liq_e
             )
             or (
-                pair.token0.address == self.evm.BUSD.address
+                pair.token0.address in self.evm.VALID_LIST
                 and pair.token0.liquid < self.config.telegram.min_liq_u
             )
             or (
-                pair.token1.address == self.evm.BUSD.address
-                and pair.token1.liquid < self.config.telegram.min_liq_u
-            )
-            or (
-                pair.token0.address == self.evm.USDT.address
-                and pair.token1.liquid < self.config.telegram.min_liq_u
-            )
-            or (
-                pair.token1.address == self.evm.USDT.address
+                pair.token1.address in self.evm.VALID_LIST
                 and pair.token1.liquid < self.config.telegram.min_liq_u
             )
         ):

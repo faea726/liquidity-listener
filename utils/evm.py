@@ -48,8 +48,8 @@ class Evm:
 
 class Token:
     def __init__(self, evm: Evm, token_address: str, erc20_abi, pair_address: str):
-        self.address = token_address
-        self.contract = evm.create_contract(token_address, erc20_abi)
+        self.address = Web3.toChecksumAddress(token_address)
+        self.contract = evm.create_contract(self.address, erc20_abi)
         try:
             self.symbol = self.contract.functions.symbol().call()
             self.wei_liquid = self.contract.functions.balanceOf(pair_address).call()
