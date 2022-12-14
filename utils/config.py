@@ -31,6 +31,8 @@ class Config:
             chain = cfg["CHAIN"]
 
             RPC_ENDPOINT = chain["RPC"]
+            BSCSCAN_API_TOKEN = chain["BSCSCAN_API_TOKEN"]
+
             FACTORY_ADDRESS = chain["FACTORY_ADDRESS"]
             CHECKER_ADDRESS = chain["CHECKER_ADDRESS"]
             WETH_ADDRESS = chain["WETH_ADDRESS"]
@@ -46,6 +48,7 @@ class Config:
 
         return self._Telegram(bot_token, channel_id, min_liq_e, min_liq_u), self._Chain(
             RPC_ENDPOINT,
+            BSCSCAN_API_TOKEN,
             FACTORY_ADDRESS,
             CHECKER_ADDRESS,
             WETH_ADDRESS,
@@ -68,6 +71,7 @@ class Config:
         def __init__(
             self,
             rpc_endpoint,
+            bscscan_api_token,
             factory_address,
             checker_address,
             weth_address,
@@ -79,6 +83,8 @@ class Config:
             pair_abi_path,
         ):
             self.RPC_ENDPOINT = rpc_endpoint
+            self.BSCSCAN_API_TOKEN = bscscan_api_token
+
             self.FACTORY_ADDRESS = factory_address
             self.CHECKER_ADDRESS = checker_address
 

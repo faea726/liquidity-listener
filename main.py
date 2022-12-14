@@ -11,6 +11,7 @@ class LiqudityListener:
         self.config = Config(config_file)
         self.evm = Evm(
             self.config.chain.RPC_ENDPOINT,
+            self.config.chain.BSCSCAN_API_TOKEN,
             self.config.chain.FACTORY_ADDRESS,
             self.config.chain.CHECKER_ADDRESS,
             self.config.chain.WETH_ADDRESS,
@@ -31,7 +32,8 @@ class LiqudityListener:
         while True:
             try:
                 self._core()
-            except Exception:
+            except Exception as err:
+                print(err)
                 pass
 
     def _core(self):

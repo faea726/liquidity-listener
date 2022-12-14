@@ -1,13 +1,17 @@
 [TELEGRAM]
 ; https://t.me/BotFather
-BOT_TOKEN = 
+BOT_TOKEN =
 ; https://api.telegram.org/bot<BOT_TOKEN>/getUpdates
-CHANNEL_ID = 
+CHANNEL_ID =
 MIN_LIQUID_E = 10
-MIN_LIQUID_U = 1000
+MIN_LIQUID_U = 2000
 
 [CHAIN]
 RPC = https://bscrpc.com
+
+; https://bscscan.com/myapikey
+BSCSCAN_API_TOKEN =
+
 FACTORY_ADDRESS = 0xca143ce32fe78f1f7019d7d551a6402fc5350c73
 CHECKER_ADDRESS = 0x18be7f977Ec1217B71D0C134FBCFF36Ea4366fCD
 
