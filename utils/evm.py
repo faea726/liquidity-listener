@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 from web3 import Web3
 
@@ -55,7 +57,40 @@ class Token:
         except Exception as err:
             raise (err)
 
+        if self.address in evm.VALID_LIST:
+            self.init_time = "NaN"
+        else:
+            self.init_time = self._get_token_age(evm)
+
         self.liquid = self.wei_liquid / (10**self.decimals)
+
+    def _get_token_age(self, evm: Evm) -> str:
+        tx_api_link = f"https://api.bscscan.com/api?module=contract&action=getcontractcreation&contractaddresses={self.address}&apikey={evm.BSCSCAN_API_TOKEN}"
+
+        try:
+            tx_rsp = requests.get(tx_api_link).json()
+            if tx_rsp["status"] != "1" or tx_rsp["message"] != "OK":
+                raise Exception("cannot get create tx")
+        except Exception as err:
+            raise (err)
+
+        try:
+            init_block_rsp = evm.web3.eth.get_transaction(tx_rsp["result"][0]["txHash"])
+            init_block = init_block_rsp["blockNumber"]
+        except Exception as err:
+            raise (err)
+
+        block_api_link = f"https://api.bscscan.com/api?module=block&action=getblockreward&blockno={init_block}&apikey={evm.BSCSCAN_API_TOKEN}"
+        try:
+            block_rsp = requests.get(block_api_link).json()
+            if block_rsp["status"] != "1" or tx_rsp["message"] != "OK":
+                raise Exception("cannot get block")
+        except Exception as err:
+            raise (err)
+
+        block_timestamp = int(block_rsp["result"]["timeStamp"])
+
+        return datetime.fromtimestamp(block_timestamp).strftime("%m/%d/%Y, %H:%M:%S")
 
 
 class Pair:
@@ -146,13 +181,15 @@ class Pair:
             + f"Symbol: <b>{self.token0.symbol}</b>\n"
             + f"Decimals: <code>{self.token0.decimals}</code>\n"
             + f"Liquid: <code>{self.token0.liquid}</code>\n"
-            + f"<a href='https://bscscan.com/token/{self.token0.address}#readContract'><b>Contract Verified</b></a>"
+            + f"<a href='https://bscscan.com/token/{self.token0.address}#readContract'><b>Contract Verified</b></a>\n"
+            + f"Created at: {self.token0.init_time}"
             + "\n\n"
             + f"Token1: <code>{self.token1.address}</code>\n"
             + f"Symbol: <b>{self.token1.symbol}</b>\n"
             + f"Decimals: <code>{self.token1.decimals}</code>\n"
             + f"Liquid: <code>{self.token1.liquid}</code>\n"
-            + f"<a href='https://bscscan.com/token/{self.token1.address}#readContract'><b>Contract Verified</b></a>"
+            + f"<a href='https://bscscan.com/token/{self.token1.address}#readContract'><b>Contract Verified</b></a>\n"
+            + f"Created at: {self.token1.init_time}"
             + "\n\n"
             + f"<a href='{self.poocoin_url}'><b>Poocoin link</b></a>\n"
             + f"Buy Tax: <code>{self.buy_tax}</code>, Sell Tax: <code>{self.sell_tax}</code>"
