@@ -32,23 +32,28 @@ class Config:
 
             RPC_ENDPOINT = chain["RPC"]
             FACTORY_ADDRESS = chain["FACTORY_ADDRESS"]
+            CHECKER_ADDRESS = chain["CHECKER_ADDRESS"]
             WETH_ADDRESS = chain["WETH_ADDRESS"]
             BUSD_ADDRESS = chain["BUSD_ADDRESS"]
             USDT_ADDRESS = chain["USDT_ADDRESS"]
 
             factory_abi_path = chain["FACTORY_ABI_PATH"]
+            checker_abi_path = chain["CHECKER_ABI_PATH"]
             erc20_abi_path = chain["ERC20_ABI_PATH"]
             pair_abi_path = chain["PAIR_ABI_PATH"]
         except Exception as err:
             exit(err)
+
         return self._Telegram(bot_token, channel_id, min_liq_e, min_liq_u), self._Chain(
             RPC_ENDPOINT,
             FACTORY_ADDRESS,
+            CHECKER_ADDRESS,
             WETH_ADDRESS,
             BUSD_ADDRESS,
             USDT_ADDRESS,
-            erc20_abi_path,
             factory_abi_path,
+            checker_abi_path,
+            erc20_abi_path,
             pair_abi_path,
         )
 
@@ -64,21 +69,25 @@ class Config:
             self,
             rpc_endpoint,
             factory_address,
+            checker_address,
             weth_address,
             busd_address,
             usdt_address,
-            erc20_abi_path,
             factory_abi_path,
+            checker_abi_path,
+            erc20_abi_path,
             pair_abi_path,
         ):
             self.RPC_ENDPOINT = rpc_endpoint
             self.FACTORY_ADDRESS = factory_address
+            self.CHECKER_ADDRESS = checker_address
 
             self.WETH_ADDRESS = weth_address
             self.BUSD_ADDRESS = busd_address
             self.USDT_ADDRESS = usdt_address
             try:
                 self.FACTORY_ABI = json.load(open(factory_abi_path))
+                self.CHECKER_ABI = json.load(open(checker_abi_path))
                 self.ERC20_ABI = json.load(open(erc20_abi_path))
                 self.PAIR_ABI = json.load(open(pair_abi_path))
             except Exception as err:

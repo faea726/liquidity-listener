@@ -5,9 +5,29 @@ from web3 import Web3
 class Evm:
     """EVM helper"""
 
-    def __init__(self, http_rpc_endpoint: str, weth_adr, busd_adr, usdt_adr, erc20_abi):
+    def __init__(
+        self,
+        http_rpc_endpoint: str,
+        factory_address: str,
+        checker_address: str,
+        weth_adr: str,
+        busd_adr: str,
+        usdt_adr: str,
+        factory_abi,
+        checker_abi,
+        erc20_abi,
+    ):
         self.web3 = Web3(Web3.HTTPProvider(http_rpc_endpoint))
-        self._setTokens(weth_adr, busd_adr, usdt_adr, erc20_abi)
+
+        self.FACTORY = self.create_contract(factory_address, factory_abi)
+        self.CHECKER = self.create_contract(checker_address, checker_abi)
+
+        self.WETH = self.create_contract(weth_adr, erc20_abi)
+        self.BUSD = self.create_contract(busd_adr, erc20_abi)
+        self.USDT = self.create_contract(usdt_adr, erc20_abi)
+
+        self.VALID_LIST = [self.WETH.address, self.BUSD.address, self.USDT.address]
+
         print("[*] Connected:", self.web3.isConnected())
         if not self.web3.isConnected():
             exit(1)
@@ -20,12 +40,6 @@ class Evm:
             )
         except Exception as err:
             exit(err)
-
-    def _setTokens(self, weth_adr: str, busd_adr: str, usdt_adr: str, erc20_abi):
-        self.WETH = self.create_contract(weth_adr, erc20_abi)
-        self.BUSD = self.create_contract(busd_adr, erc20_abi)
-        self.USDT = self.create_contract(usdt_adr, erc20_abi)
-        self.VALID_LIST = [self.WETH.address, self.BUSD.address, self.USDT.address]
 
 
 class Token:
@@ -53,34 +67,53 @@ class Pair:
             token1_adr = self.contract.functions.token1().call()
             self.token0 = Token(evm, token0_adr, erc20_abi, self.address)
             self.token1 = Token(evm, token1_adr, erc20_abi, self.address)
-            self._check_honeypot()
+            self.is_honeypot = self._check_honeypot(evm)
         except Exception as err:
             raise (err)
 
-    def _check_honeypot(self):
+    def _check_honeypot(self, evm: Evm):
         self.is_honeypot = True
-        if self._is_honeypot():
-            return
-
-        self.poocoin_url = "https://poocoin.app/tokens/"
-        if self.token0.address in self.valid_list:
-            self.poocoin_url += str(self.token1.address)
-        elif self.token1.address in self.valid_list:
-            self.poocoin_url += str(self.token0.address)
-
-    def _is_honeypot(self) -> bool:
         if (
             self.token0.address not in self.valid_list
             and self.token1.address not in self.valid_list
         ):
             return True
 
-        honeypot_api = ""
-        for address in [self.token0.address, self.token1.address]:
-            link = honeypot_api + address
-            if requests.get(link).json()["_key_"]:
-                return False
+        self.poocoin_url = "https://poocoin.app/tokens/"
+
+        if self.token0.address not in self.valid_list and not self._is_honeypot(
+            evm, self.token0.address
+        ):
+            self.poocoin_url += str(self.token0.address)
+            return False
+
+        if not self._is_honeypot(evm, self.token1.address):
+            self.poocoin_url += str(self.token1.address)
+            return False
+
         return True
+
+    def _is_honeypot(self, evm: Evm, token_address: str):
+        try:
+            [
+                buy_estimate,
+                buy_real,
+                sell_estimate,
+                sell_real,
+                self.buyable,
+                _,
+                self.sellable,
+            ] = evm.CHECKER.functions.getTokenInformations(token_address).call()
+        except Exception as err:
+            raise (err)
+
+        if not self.buyable and not self.sellable:
+            return True
+
+        self.buy_tax = round(((buy_estimate - buy_real) / buy_estimate) * 100, 2)
+        self.sell_tax = round(((sell_estimate - sell_real) / sell_estimate) * 100, 2)
+
+        return False
 
     def serialize(self):
         """Serialize data to telegram message"""
@@ -97,5 +130,6 @@ class Pair:
             + f"Symbol: {self.token1.symbol}\n"
             + f"Decimals: {self.token1.decimals}\n"
             + f"Liquid: `{self.token1.liquid}`\n\n"
-            + f"[POOCOIN LINK]({self.poocoin_url})"
+            + f"[POOCOIN LINK]({self.poocoin_url})\n"
+            + f"Buy Tax: {self.buy_tax}, Sell Tax: {self.sell_tax}"
         )

@@ -11,18 +11,18 @@ class LiqudityListener:
         self.config = Config(config_file)
         self.evm = Evm(
             self.config.chain.RPC_ENDPOINT,
+            self.config.chain.FACTORY_ADDRESS,
+            self.config.chain.CHECKER_ADDRESS,
             self.config.chain.WETH_ADDRESS,
             self.config.chain.BUSD_ADDRESS,
             self.config.chain.USDT_ADDRESS,
+            self.config.chain.FACTORY_ABI,
+            self.config.chain.CHECKER_ABI,
             self.config.chain.ERC20_ABI,
         )
 
-        self.factory_contract = self.evm.create_contract(
-            self.config.chain.FACTORY_ADDRESS, self.config.chain.FACTORY_ABI
-        )
-
         try:
-            self.all_pairs = self.factory_contract.functions.allPairsLength().call()
+            self.all_pairs = self.evm.FACTORY.functions.allPairsLength().call()
         except Exception as err:
             exit(err)
         print("[*] Current:", self.all_pairs)
@@ -31,12 +31,12 @@ class LiqudityListener:
         while True:
             try:
                 self._core()
-            except Exception:
-                pass
+            except Exception as err:
+                print(err)
 
     def _core(self):
         try:
-            last_pair = self.factory_contract.functions.allPairsLength().call()
+            last_pair = self.evm.FACTORY.functions.allPairsLength().call()
         except Exception as err:
             raise (err)
 
@@ -49,7 +49,7 @@ class LiqudityListener:
     def _process(self, last_pair: int):
         for index in range(self.all_pairs, last_pair):
             try:
-                pair_adr = self.factory_contract.functions.allPairs(index).call()
+                pair_adr = self.evm.FACTORY.functions.allPairs(index).call()
                 pair = Pair(
                     self.evm,
                     pair_adr,
@@ -109,6 +109,7 @@ class LiqudityListener:
                     "chat_id": self.config.telegram.chat_id,
                     "text": message,
                     "parse_mode": "MarkdownV2",
+                    "disable_web_page_preview": True,
                 },
                 timeout=3,
             )
