@@ -52,4 +52,4 @@ If you have any feedback, please open an issue.
 
 ## License
 
-[MIT](LICENSE)
+[Apache License 2.0](LICENSE)
