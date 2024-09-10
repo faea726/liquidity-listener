@@ -52,4 +52,4 @@ If you have any feedback, please open an issue.
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](LICENSE)
